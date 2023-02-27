@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SevenDaysOfCodeDay3 {
+public class SevenDaysOfCodeJavaDay3 {
 	
 	public static record Movie (String title, String url, String imDbRating, String year) {}
 	public static void main(String[] args) throws Exception {
