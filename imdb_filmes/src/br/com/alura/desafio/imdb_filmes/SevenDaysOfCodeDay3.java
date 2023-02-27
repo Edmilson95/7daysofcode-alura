@@ -4,13 +4,16 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SevenDaysOfCodeJavaDay2 {
+public class SevenDaysOfCodeDay3 {
+	
+	public static record Movie (String title, String url, String imDbRating, String year) {}
 	public static void main(String[] args) throws Exception {
 
 		String apiKey = "k_x062wd9t";
@@ -22,18 +25,28 @@ public class SevenDaysOfCodeJavaDay2 {
 		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 		String json = response.body();
 
-		String[] moviesArray = parseJsonMovies(json);
-
-		System.out.println(moviesArray[1]);
+		List<Movie> movies = parse(json);		
 		
-		List<String> titles = parseTitles(moviesArray);
-		titles.forEach(System.out::println);
-
-		List<String> urlImages = parseUrlImages(moviesArray);
-		urlImages.forEach(System.out::println);
-
+		System.out.println(movies.size());
+		System.out.println(movies.get(1));
 	}
 
+	private static List<Movie> parse(String json) {
+		String[] moviesArray = parseJsonMovies(json);
+
+		List<String> titles = parseTitles(moviesArray);
+		List<String> urlImages = parseUrlImages(moviesArray);
+		List<String> ratings = parseRatings(moviesArray);
+		List<String> years = parseYears(moviesArray);
+		
+		List<Movie> movies = new ArrayList<>(titles.size());
+		
+		for (int i =0; i < titles.size(); i++) {
+			movies.add(new Movie(titles.get(i), urlImages.get(i) , ratings.get(i), years.get(i)));
+		}
+		return movies;
+	}
+	
 	private static String[] parseJsonMovies(String json) {
 		Matcher matcher = Pattern.compile(".*\\[(.*)\\].*").matcher(json);
 
@@ -48,20 +61,30 @@ public class SevenDaysOfCodeJavaDay2 {
 		moviesArray[last] = lastString.substring(0, lastString.length() - 1);
 		return moviesArray;
 	}
-
+	
 	private static List<String> parseTitles(String[] moviesArray) {
 		return parseAttribute(moviesArray, 3);
 	}
-
+	
 	private static List<String> parseUrlImages(String[] moviesArray) {
 		return parseAttribute(moviesArray, 5);
 	}
-
-	private static List<String> parseAttribute(String[] moviesArray, int pos) {
-		return Stream.of(moviesArray).map(e -> e.split("\",\"")[pos])
-				.map(e -> e.split(":\"")[1])
-				.map(e -> e.replaceAll("\"", ""))
-				.collect(Collectors.toList());
+	
+	private static List<String> parseRatings(String[] moviesArray) {
+		return parseAttribute(moviesArray, 7);
 	}
 
+	private static List<String> parseYears(String[] moviesArray) {
+		return parseAttribute(moviesArray, 4);
+	}
+	
+	
+	private static List<String> parseAttribute(String[] jsonMovies, int pos) {
+		return Stream.of(jsonMovies)
+			.map(e -> e.split("\",\"")[pos]) 
+			.map(e -> e.split(":\"")[1]) 
+			.map(e -> e.replaceAll("\"", ""))
+			.collect(Collectors.toList());
+	}
+	
 }
